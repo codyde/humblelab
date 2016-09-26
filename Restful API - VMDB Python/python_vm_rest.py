@@ -3,11 +3,14 @@ import json
 import collections
 from flask import Flask, jsonify
 from flask import abort
+import getpass
+
+pswd = getpass.getpass('Password:')
 
 objects_list = []
 conn =  pyodbc.connect(
         'DSN=humblesql01;' # as specified in /etc/odbc.ini
-        'UID=sa;PWD=TestPass;')
+        'UID=sa;PWD='+pswd+';')
 cursor = conn.cursor()
 
 app = Flask(__name__)
@@ -47,6 +50,14 @@ def get_hostname(hostname):
 	if len(host) == 0:
 		abort(404)
 	return jsonify({'hostname': host[0]})
+
+@app.route('/humblelab/api/v1.0/vms/<string:requestor>', methods=['GET'])
+def get_uservms(requestor):
+	getdbjson()
+	user = [user for user in objects_list if user['requestor'] == requestor]
+	if len(user) == 0:
+		abort(404)
+	return jsonify({'requestor': user[0]})
 
 
 if __name__ == '__main__':
